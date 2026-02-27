@@ -117,3 +117,7 @@ It exposes an `/identify` API that reconciles contacts based on email and phone 
 
 - The app already supports Render's dynamic port via `process.env.PORT`.
 - Production start command is `npm start`.
+
+## Author
+
+This task has been completed by **Vaidik Singh Parihar**, college **NIT Bhopal**, and a competitive programmer.
