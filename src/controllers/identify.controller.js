@@ -21,7 +21,7 @@ const buildResponse = (contacts, primaryId) => {
 
   const emails = [];
   const phoneNumbers = [];
-  const secondaryContactIds = [];
+  const secondaryContactIds = new Set();
 
   if (primaryContact?.email) emails.push(primaryContact.email);
   if (primaryContact?.phoneNumber) phoneNumbers.push(primaryContact.phoneNumber);
@@ -34,7 +34,7 @@ const buildResponse = (contacts, primaryId) => {
       phoneNumbers.push(contact.phoneNumber);
     }
     if (contact.linkPrecedence === "secondary") {
-      secondaryContactIds.push(contact.id);
+      secondaryContactIds.add(contact.id);
     }
   }
 
@@ -43,12 +43,12 @@ const buildResponse = (contacts, primaryId) => {
       primaryContactId: primaryId,
       emails,
       phoneNumbers,
-      secondaryContactIds,
+      secondaryContactIds: [...secondaryContactIds],
     },
   };
 };
 
-const identify = async (req, res) => {
+const identify = async (req, res, next) => {
   try {
     const rawEmail = req.body?.email;
     const rawPhoneNumber = req.body?.phoneNumber;
@@ -57,9 +57,11 @@ const identify = async (req, res) => {
       typeof rawPhoneNumber === "string" ? rawPhoneNumber.trim() : rawPhoneNumber;
 
     if (!email && !phoneNumber) {
-      return res.status(400).json({
-        error: "At least one of email or phoneNumber is required",
-      });
+      const validationError = new Error(
+        "At least one of email or phoneNumber is required"
+      );
+      validationError.statusCode = 400;
+      throw validationError;
     }
 
     const { data: matchedContacts, error: matchError } =
@@ -161,10 +163,7 @@ const identify = async (req, res) => {
 
     return res.status(200).json(buildResponse(allContacts, oldestPrimary.id));
   } catch (error) {
-    return res.status(500).json({
-      error: "Failed to reconcile identity",
-      details: error.message,
-    });
+    return next(error);
   }
 };
 
