@@ -17,7 +17,7 @@ It exposes an `/identify` API that reconciles contacts based on email and phone 
 
 ## Hosted URL
 
-`<TO_BE_ADDED_AFTER_DEPLOYMENT>`
+`https://bitespeed-backend-task-a8si.onrender.com`
 
 ## API Documentation
 
