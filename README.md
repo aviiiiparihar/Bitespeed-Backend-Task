@@ -101,3 +101,19 @@ It exposes an `/identify` API that reconciles contacts based on email and phone 
    ```text
    http://localhost:3000
    ```
+
+## Deploy on Render
+
+1. Push this repository to GitHub.
+2. In Render, click **New +** -> **Blueprint** and select this repo.
+3. Render will read `render.yaml` and create the web service.
+4. In Render dashboard, set these environment variables:
+   - `SUPABASE_URL`
+   - `SUPABASE_KEY`
+5. Deploy the service.
+6. Update the **Hosted URL** section in this README with the live URL.
+
+### Render Runtime Notes
+
+- The app already supports Render's dynamic port via `process.env.PORT`.
+- Production start command is `npm start`.
