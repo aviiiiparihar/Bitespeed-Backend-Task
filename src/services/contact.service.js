@@ -3,7 +3,7 @@ const supabase = require("../config/supabase");
 const CONTACT_TABLE = "Contact";
 
 const findContactsByEmailOrPhone = async (email, phone) => {
-  let query = supabase.from(CONTACT_TABLE).select("*");
+  let query = supabase.from(CONTACT_TABLE).select("*").is("deletedAt", null);
 
   if (email && phone) {
     query = query.or(`email.eq.${email},phoneNumber.eq.${phone}`);
@@ -57,7 +57,21 @@ const getAllLinkedContacts = async (contactIds) => {
     return { data: [], error: null };
   }
 
-  return supabase.from(CONTACT_TABLE).select("*").in("id", contactIds);
+  const ids = [...new Set(contactIds)].filter(
+    (id) => Number.isInteger(id) || (typeof id === "number" && Number.isFinite(id))
+  );
+
+  if (ids.length === 0) {
+    return { data: [], error: null };
+  }
+
+  const idList = ids.join(",");
+
+  return supabase
+    .from(CONTACT_TABLE)
+    .select("*")
+    .is("deletedAt", null)
+    .or(`id.in.(${idList}),linkedId.in.(${idList})`);
 };
 
 const updateToSecondary = async (contactId, primaryId) => {
@@ -75,10 +89,24 @@ const updateToSecondary = async (contactId, primaryId) => {
     .single();
 };
 
+const relinkSecondaryContacts = async (oldPrimaryId, newPrimaryId) => {
+  const now = new Date().toISOString();
+
+  return supabase
+    .from(CONTACT_TABLE)
+    .update({
+      linkedId: newPrimaryId,
+      updatedAt: now,
+    })
+    .eq("linkedId", oldPrimaryId)
+    .is("deletedAt", null);
+};
+
 module.exports = {
   findContactsByEmailOrPhone,
   createPrimaryContact,
   createSecondaryContact,
   getAllLinkedContacts,
   updateToSecondary,
+  relinkSecondaryContacts,
 };
